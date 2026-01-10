@@ -41,7 +41,8 @@ function normalizeHost(input) {
   if (!trimmed) return null;
   try {
     const parsed = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`);
-    return parsed.hostname.toLowerCase();
+    const hostname = parsed.hostname.toLowerCase();
+    return hostname.startsWith("www.") ? hostname.slice(4) : hostname;
   } catch {
     return null;
   }

@@ -32,7 +32,8 @@ function getHostFromUrl(rawUrl) {
   const urlToParse = suspendedTarget || rawUrl;
   try {
     const parsed = new URL(urlToParse);
-    return parsed.hostname.toLowerCase();
+    const hostname = parsed.hostname.toLowerCase();
+    return hostname.startsWith("www.") ? hostname.slice(4) : hostname;
   } catch {
     return null;
   }
@@ -80,14 +81,8 @@ async function enforceLimit(tab) {
     return;
   }
 
-  const ids = matching
-    .filter((t) => t.id !== undefined)
-    .sort((a, b) => (b.id || 0) - (a.id || 0))
-    .map((t) => t.id);
-
-  const toClose = ids[0];
-  if (toClose !== undefined) {
-    await chrome.tabs.remove(toClose);
+  if (tab.id !== undefined) {
+    await chrome.tabs.remove(tab.id);
   }
 
   await sendHostStatus(host);

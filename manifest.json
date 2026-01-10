@@ -7,11 +7,19 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Tab Limiter for Sites"
+    "default_title": "Tab Limiter for Sites",
+    "default_popup": "options.html"
   }
 }

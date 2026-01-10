@@ -38,19 +38,47 @@ function getHostFromUrl(rawUrl) {
   }
 }
 
+function getHostFromTab(tab) {
+  return getHostFromUrl(tab?.pendingUrl || tab?.url);
+}
+
+async function getTabsByHost(host) {
+  const tabs = await chrome.tabs.query({});
+  return tabs.filter((t) => getHostFromTab(t) === host);
+}
+
+async function sendHostStatus(host) {
+  const limits = await getLimits();
+  const limit = limits.get(host);
+  if (!limit) return;
+  const tabs = await getTabsByHost(host);
+  const payload = {
+    type: "site-status",
+    host,
+    count: tabs.length,
+    limit,
+  };
+  for (const tab of tabs) {
+    if (!tab.id) continue;
+    chrome.tabs.sendMessage(tab.id, payload).catch(() => {});
+  }
+}
+
 async function enforceLimit(tab) {
   if (!tab || !tab.id) return;
-  const host = getHostFromUrl(tab.url);
+  const host = getHostFromTab(tab);
   if (!host) return;
 
   const limits = await getLimits();
   const limit = limits.get(host);
   if (!limit) return;
 
-  const tabs = await chrome.tabs.query({});
-  const matching = tabs.filter((t) => getHostFromUrl(t.url) === host);
+  const matching = await getTabsByHost(host);
 
-  if (matching.length <= limit) return;
+  if (matching.length <= limit) {
+    await sendHostStatus(host);
+    return;
+  }
 
   const ids = matching
     .filter((t) => t.id !== undefined)
@@ -61,6 +89,8 @@ async function enforceLimit(tab) {
   if (toClose !== undefined) {
     await chrome.tabs.remove(toClose);
   }
+
+  await sendHostStatus(host);
 }
 
 chrome.tabs.onCreated.addListener((tab) => {
@@ -68,9 +98,27 @@ chrome.tabs.onCreated.addListener((tab) => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url || changeInfo.status === "complete") {
+  if (changeInfo.url || changeInfo.status === "complete" || changeInfo.pendingUrl) {
     void enforceLimit(tab);
+    const host = getHostFromTab(tab);
+    if (host) {
+      void sendHostStatus(host);
+    }
   }
+});
+
+chrome.tabs.onRemoved.addListener(() => {
+  chrome.tabs.query({}, async (tabs) => {
+    const limits = await getLimits();
+    const hosts = new Set();
+    for (const tab of tabs) {
+      const host = getHostFromTab(tab);
+      if (host && limits.has(host)) hosts.add(host);
+    }
+    for (const host of hosts) {
+      void sendHostStatus(host);
+    }
+  });
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -79,6 +127,34 @@ chrome.storage.onChanged.addListener((changes, area) => {
       for (const tab of tabs) {
         void enforceLimit(tab);
       }
+      const hosts = new Set();
+      for (const tab of tabs) {
+        const host = getHostFromTab(tab);
+        if (host) hosts.add(host);
+      }
+      for (const host of hosts) {
+        void sendHostStatus(host);
+      }
     });
   }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type !== "get-site-status") return;
+  const host = getHostFromUrl(message.url);
+  if (!host) {
+    sendResponse({ host: null, count: 0, limit: null });
+    return;
+  }
+  void (async () => {
+    const limits = await getLimits();
+    const limit = limits.get(host) || null;
+    if (!limit) {
+      sendResponse({ host, count: 0, limit: null });
+      return;
+    }
+    const tabs = await getTabsByHost(host);
+    sendResponse({ host, count: tabs.length, limit });
+  })();
+  return true;
 });

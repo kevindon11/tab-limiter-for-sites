@@ -13,5 +13,6 @@ Chrome extension to limit the number of open tabs per site.
 1. Click **Details** on the extension and open **Extension options**.
 2. Add site hostnames (exact match) and a tab limit for each.
 3. Save your settings. When the limit is reached, the newest tab for that site will be closed.
+4. A small banner appears on tracked sites showing the open tab count (e.g., `youtube.com: 2/3 tabs`).
 
 Suspended tab URLs (like `chrome-extension://.../suspended.html#...&uri=https://example.com`) are counted toward the original site.

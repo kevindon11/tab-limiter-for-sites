@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Limiter for Sites",
+  "version": "1.0.0",
+  "description": "Limit open tabs per site.",
+  "permissions": ["tabs", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Tab Limiter for Sites"
+  }
+}

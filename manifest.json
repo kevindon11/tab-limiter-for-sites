@@ -19,7 +19,6 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Tab Limiter for Sites",
-    "default_popup": "options.html"
+    "default_title": "Tab Limiter for Sites"
   }
 }

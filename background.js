@@ -97,6 +97,10 @@ chrome.tabs.onCreated.addListener((tab) => {
   void enforceLimit(tab);
 });
 
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url || changeInfo.status === "complete" || changeInfo.pendingUrl) {
     void enforceLimit(tab);

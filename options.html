@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tab Limiter for Sites - Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Tab Limiter for Sites</h1>
+      <p>Set a maximum number of tabs per site (hostnames are matched exactly).</p>
+
+      <form id="limits-form">
+        <div id="limits-list" class="limits-list"></div>
+        <button type="button" id="add-limit">Add site limit</button>
+        <div class="actions">
+          <button type="submit">Save</button>
+          <span id="status" class="status" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+
+      <section class="help">
+        <h2>Examples</h2>
+        <ul>
+          <li><code>youtube.com</code> is different from <code>music.youtube.com</code>.</li>
+          <li>Suspended tab URLs will count toward their original site.</li>
+        </ul>
+      </section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
